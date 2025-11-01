@@ -3,343 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Weather Forecasting System</title>
+    <title>Weather App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+        .delay-1000 { animation-delay: 1s; }
+        .delay-500 { animation-delay: 0.5s; }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        #cityInput {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        #cityInput:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        #searchBtn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        #searchBtn:hover {
-            transform: translateY(-2px);
-        }
-
-        #searchBtn:active {
-            transform: translateY(0);
-        }
-
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-size: 18px;
-            display: none;
-            margin: 20px 0;
-        }
-
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            display: none;
-            margin-bottom: 20px;
-        }
-
-        .weather-info {
-            display: none;
-        }
-
-        .location {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .city-name {
-            font-size: 32px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .country {
-            font-size: 18px;
-            color: #666;
-        }
-
-        .main-weather {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .weather-icon {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto;
-        }
-
-        .description {
-            font-size: 20px;
-            color: #666;
-            text-transform: capitalize;
-            margin-top: 10px;
-        }
-
-        .temperature {
-            font-size: 64px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 20px 0;
-        }
-
-        .feels-like {
-            font-size: 16px;
-            color: #888;
-        }
-
-        .details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .detail-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .sun-times {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #eee;
-        }
-
-        .sun-item {
-            text-align: center;
-        }
-
-        .sun-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
-        }
-
-        .sun-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #667eea;
-        }
+        .animate-fade-in { animation: fade-in 0.6s ease-out; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🌤️ Weather Forecast</h1>
-        <p class="subtitle">Get real-time weather information for any city</p>
+    <div id="root"></div>
 
-        <div class="search-box">
-            <input type="text" id="cityInput" placeholder="Enter city name..." />
-            <button id="searchBtn">Search</button>
-        </div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-        <div class="loading" id="loading">
-            <p>🔍 Fetching weather data...</p>
-        </div>
+    <script type="text/babel">
+        const { useState } = React;
 
-        <div class="error" id="error"></div>
+        // SVG Icons as Components
+        const SearchIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        );
 
-        <div class="weather-info" id="weatherInfo">
-            <div class="location">
-                <div class="city-name" id="cityName"></div>
-                <div class="country" id="country"></div>
-            </div>
+        const WindIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+            </svg>
+        );
 
-            <div class="main-weather">
-                <img class="weather-icon" id="weatherIcon" src="" alt="Weather icon">
-                <div class="description" id="description"></div>
-                <div class="temperature" id="temperature"></div>
-                <div class="feels-like" id="feelsLike"></div>
-            </div>
+        const DropletsIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+            </svg>
+        );
 
-            <div class="details">
-                <div class="detail-item">
-                    <div class="detail-label">Min Temp</div>
-                    <div class="detail-value" id="tempMin"></div>
+        const GaugeIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        );
+
+        const ThermometerIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l3-3 3 3v13M9 19a3 3 0 106 0" />
+            </svg>
+        );
+
+        const MapPinIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        );
+
+        const SunriseIcon = () => (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17h18M12 4v1m8.66 6.34l-.71.71M20 12h1M4 12H3m3.05 7.05l-.71-.71M12 20v1m-8.66-6.34l.71.71" />
+            </svg>
+        );
+
+        const SunsetIcon = () => (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0l-4-4m4 4l4 4" />
+            </svg>
+        );
+
+        function StatCard({ icon, label, value, gradient }) {
+            return (
+                <div className={`bg-gradient-to-br ${gradient} bg-opacity-10 border border-white/10 rounded-2xl p-4 backdrop-blur-sm`}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="text-white/80">{icon}</div>
+                        <p className="text-gray-300 text-sm">{label}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-white">{value}</p>
                 </div>
-                <div class="detail-item">
-                    <div class="detail-label">Max Temp</div>
-                    <div class="detail-value" id="tempMax"></div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Humidity</div>
-                    <div class="detail-value" id="humidity"></div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Pressure</div>
-                    <div class="detail-value" id="pressure"></div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Wind Speed</div>
-                    <div class="detail-value" id="windSpeed"></div>
-                </div>
-            </div>
+            );
+        }
 
-            <div class="sun-times">
-                <div class="sun-item">
-                    <div class="sun-label">🌅 Sunrise</div>
-                    <div class="sun-value" id="sunrise"></div>
-                </div>
-                <div class="sun-item">
-                    <div class="sun-label">🌇 Sunset</div>
-                    <div class="sun-value" id="sunset"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+        function WeatherApp() {
+            const [city, setCity] = useState('');
+            const [weather, setWeather] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
 
-    <script>
-        const cityInput = document.getElementById('cityInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
-        const weatherInfo = document.getElementById('weatherInfo');
-
-        searchBtn.addEventListener('click', searchWeather);
-        cityInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchWeather();
-            }
-        });
-
-        async function searchWeather() {
-            const city = cityInput.value.trim();
-
-            if (!city) {
-                showError('Please enter a city name');
-                return;
-            }
-
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            weatherInfo.style.display = 'none';
-
-            try {
-                const response = await fetch('/weather', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ city: city })
-                });
-
-                const data = await response.json();
-                loading.style.display = 'none';
-
-                if (response.ok) {
-                    displayWeather(data);
-                } else {
-                    showError(data.error || 'Failed to fetch weather data');
+            const searchWeather = async () => {
+                if (!city.trim()) {
+                    setError('Please enter a city name');
+                    return;
                 }
-            } catch (err) {
-                loading.style.display = 'none';
-                showError('Network error. Please try again.');
-            }
+
+                setLoading(true);
+                setError('');
+                setWeather(null);
+
+                try {
+                    const response = await fetch('/weather', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ city: city.trim() })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        setWeather(data);
+                    } else {
+                        setError(data.error || 'Failed to fetch weather data');
+                    }
+                } catch (err) {
+                    setError('Network error. Please try again.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') searchWeather();
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+                    {/* Animated Background */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl -top-48 -left-48 animate-pulse-slow"></div>
+                        <div className="absolute w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl -bottom-48 -right-48 animate-pulse-slow delay-1000"></div>
+                        <div className="absolute w-96 h-96 bg-pink-500/10 rounded-full blur-3xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse-slow delay-500"></div>
+                    </div>
+
+                    {/* Glass Card */}
+                    <div className="relative z-10 w-full max-w-2xl">
+                        <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+                            {/* Header */}
+                            <div className="text-center mb-8">
+                                <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-2">
+                                    Weather App
+                                </h1>
+                                <p className="text-gray-300 text-sm">Real-time atmospheric intelligence</p>
+                            </div>
+
+                            {/* Search Bar */}
+                            <div className="relative mb-8">
+                                <input
+                                    type="text"
+                                    value={city}
+                                    onChange={(e) => setCity(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    placeholder="Enter city coordinates..."
+                                    className="w-full bg-white/5 border border-cyan-500/30 rounded-2xl px-6 py-4 pr-14 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+                                />
+                                <button
+                                    onClick={searchWeather}
+                                    disabled={loading}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <SearchIcon />
+                                </button>
+                            </div>
+
+                            {/* Loading */}
+                            {loading && (
+                                <div className="text-center py-12">
+                                    <div className="inline-block w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
+                                    <p className="text-cyan-300 text-lg">Scanning atmosphere...</p>
+                                </div>
+                            )}
+
+                            {/* Error */}
+                            {error && (
+                                <div className="bg-red-500/20 border border-red-500/50 rounded-2xl p-4 mb-6">
+                                    <p className="text-red-300 text-center">{error}</p>
+                                </div>
+                            )}
+
+                            {/* Weather Data */}
+                            {weather && !loading && (
+                                <div className="space-y-6 animate-fade-in">
+                                    {/* Location */}
+                                    <div className="text-center">
+                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                            <MapPinIcon />
+                                            <h2 className="text-4xl font-bold text-white">{weather.city}</h2>
+                                        </div>
+                                        <p className="text-xl text-gray-300">{weather.country}</p>
+                                    </div>
+
+                                    {/* Main Temperature */}
+                                    <div className="text-center py-6">
+                                        <div className="relative inline-block">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
+                                            <img
+                                                src={`http://openweathermap.org/img/wn/${weather.icon}@4x.png`}
+                                                alt="Weather"
+                                                className="w-32 h-32 mx-auto relative z-10"
+                                            />
+                                        </div>
+                                        <p className="text-2xl text-purple-300 capitalize mb-4">{weather.description}</p>
+                                        <div className="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+                                            {weather.temperature}°C
+                                        </div>
+                                        <p className="text-xl text-gray-400 mt-2">Feels like {weather.feels_like}°C</p>
+                                    </div>
+
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <StatCard
+                                            icon={<ThermometerIcon />}
+                                            label="Min/Max"
+                                            value={`${weather.temp_min}°C / ${weather.temp_max}°C`}
+                                            gradient="from-blue-500 to-cyan-500"
+                                        />
+                                        <StatCard
+                                            icon={<DropletsIcon />}
+                                            label="Humidity"
+                                            value={`${weather.humidity}%`}
+                                            gradient="from-cyan-500 to-teal-500"
+                                        />
+                                        <StatCard
+                                            icon={<WindIcon />}
+                                            label="Wind Speed"
+                                            value={`${weather.wind_speed} m/s`}
+                                            gradient="from-purple-500 to-pink-500"
+                                        />
+                                        <StatCard
+                                            icon={<GaugeIcon />}
+                                            label="Pressure"
+                                            value={`${weather.pressure} hPa`}
+                                            gradient="from-pink-500 to-rose-500"
+                                        />
+                                    </div>
+
+                                    {/* Sun Times */}
+                                    <div className="grid grid-cols-2 gap-4 pt-4">
+                                        <div className="bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-2xl p-4 text-center">
+                                            <div className="text-orange-400 mx-auto mb-2 flex justify-center">
+                                                <SunriseIcon />
+                                            </div>
+                                            <p className="text-gray-400 text-sm mb-1">Sunrise</p>
+                                            <p className="text-2xl font-bold text-orange-300">{weather.sunrise}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-2xl p-4 text-center">
+                                            <div className="text-indigo-400 mx-auto mb-2 flex justify-center">
+                                                <SunsetIcon />
+                                            </div>
+                                            <p className="text-gray-400 text-sm mb-1">Sunset</p>
+                                            <p className="text-2xl font-bold text-indigo-300">{weather.sunset}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Initial State */}
+                            {!weather && !loading && !error && (
+                                <div className="text-center py-12">
+                                    <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
+                                        <SearchIcon />
+                                    </div>
+                                    <p className="text-gray-400 text-lg">Enter a city to begin scanning</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Powered By */}
+                        <p className="text-center text-gray-500 text-sm mt-4">
+                            Powered by OpenWeatherMap API
+                        </p>
+                    </div>
+                </div>
+            );
         }
 
-        function displayWeather(data) {
-            document.getElementById('cityName').textContent = data.city;
-            document.getElementById('country').textContent = data.country;
-            document.getElementById('description').textContent = data.description;
-            document.getElementById('temperature').textContent = `${data.temperature}°C`;
-            document.getElementById('feelsLike').textContent = `Feels like ${data.feels_like}°C`;
-            document.getElementById('tempMin').textContent = `${data.temp_min}°C`;
-            document.getElementById('tempMax').textContent = `${data.temp_max}°C`;
-            document.getElementById('humidity').textContent = `${data.humidity}%`;
-            document.getElementById('pressure').textContent = `${data.pressure} hPa`;
-            document.getElementById('windSpeed').textContent = `${data.wind_speed} m/s`;
-            document.getElementById('sunrise').textContent = data.sunrise;
-            document.getElementById('sunset').textContent = data.sunset;
-            document.getElementById('weatherIcon').src = `http://openweathermap.org/img/wn/${data.icon}@2x.png`;
-
-            weatherInfo.style.display = 'block';
-        }
-
-        function showError(message) {
-            error.textContent = message;
-            error.style.display = 'block';
-        }
+        ReactDOM.render(<WeatherApp />, document.getElementById('root'));
     </script>
 </body>
 </html>
