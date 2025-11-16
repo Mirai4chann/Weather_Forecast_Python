@@ -137,144 +137,153 @@
             };
 
             return (
-                <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-                    {/* Glass Card Wrapper - fixed size when a city is searched so it never overlaps viewport */}
-                    <div className={`relative z-10 mx-auto inline-block ${weather ? 'w-[calc(100vw-4rem)] h-[calc(100vh-4rem)]' : 'w-full max-w-4xl'}`}>
-                        <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 overflow-hidden h-full flex flex-col">
-                            {/* Header + search area (fixed height) */}
-                            <div className="flex-shrink-0 p-3">
-                                {/* ...existing header + search markup... */}
-                                <div className="text-center mb-8">
-                                    <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-2">Weather App</h1>
-                                    <p className="text-gray-300 text-sm">Real-time atmospheric intelligence</p>
-                                </div>
+                <>
+                    {/* Header only shows when a city is searched */}
+                    {weather && (
+                        <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+                            <nav className="bg-white/6 backdrop-blur rounded-full px-4 py-2 shadow-sm border border-white/10">
+                                <ul className="flex gap-3 items-center">
+                                    <li>
+                                        <a href="/" className="text-sm text-white hover:underline">
+                                            Weather App
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href={`/predict?city=${encodeURIComponent(weather.city)}`} target="_blank" rel="noopener" className="text-sm text-cyan-300 hover:underline">
+                                             Open Predict in new tab
+                                         </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </header>
+                    )}
 
-                                <div className="relative mb-6">
-                                    <input
-                                        type="text"
-                                        value={city}
-                                        onChange={(e) => setCity(e.target.value)}
-                                        onKeyPress={handleKeyPress}
-                                        placeholder="Enter city coordinates..."
-                                        className="w-full bg-white/5 border border-cyan-500/30 rounded-2xl px-6 py-3 pr-14 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                                    />
-                                    <button
-                                        onClick={searchWeather}
-                                        disabled={loading}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <SearchIcon />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Panels area: fills remaining card space and does NOT scroll */}
-                            <div className="flex-1 flex flex-col p-3 min-h-0">
-                                {/* Loading / Error / Initial states still occupy area without causing scroll */}
-                                {loading && (
-                                    <div className="text-center py-12">
-                                        <div className="inline-block w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
-                                        <p className="text-cyan-300 text-lg">Scanning atmosphere...</p>
+                    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+                        {/* Glass Card Wrapper - fixed size when a city is searched so it never overlaps viewport */}
+                        <div className={`relative z-10 mx-auto inline-block ${weather ? 'w-[calc(100vw-4rem)] h-[calc(100vh-4rem)]' : 'w-full max-w-4xl'}`}>
+                            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 overflow-hidden h-full flex flex-col">
+                                {/* Header + search area (fixed height) */}
+                                <div className="flex-shrink-0 p-3">
+                                    {/* ...existing header + search markup... */}
+                                    <div className="text-center mb-8">
+                                        <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-2">Weather App</h1>
+                                        <p className="text-gray-300 text-sm">Real-time atmospheric intelligence</p>
                                     </div>
-                                )}
 
-                                {error && (
-                                    <div className="bg-red-500/20 border border-red-500/50 rounded-2xl p-4 mb-6">
-                                        <p className="text-red-300 text-center">{error}</p>
-                                    </div>
-                                )}
-
-                                {!weather && !loading && !error && (
-                                    <div className="text-center py-12">
-                                        <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
+                                    <div className="relative mb-6">
+                                        <input
+                                            type="text"
+                                            value={city}
+                                            onChange={(e) => setCity(e.target.value)}
+                                            onKeyPress={handleKeyPress}
+                                            placeholder="Enter city coordinates..."
+                                            className="w-full bg-white/5 border border-cyan-500/30 rounded-2xl px-6 py-3 pr-14 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+                                        />
+                                        <button
+                                            onClick={searchWeather}
+                                            disabled={loading}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
                                             <SearchIcon />
-                                        </div>
-                                        <p className="text-gray-400 text-lg">Enter a city to begin scanning</p>
+                                        </button>
                                     </div>
-                                )}
+                                </div>
 
-                                {/* When weather present: two panels side-by-side that fit the card (no scrolling) */}
-                                {weather && !loading && (
-                                    <div className="flex-1 flex gap-6 min-h-0">
-                                        {/* Map Panel */}
-                                        <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/20 flex-1 min-h-0 flex flex-col">
-                                            <div className="flex-1 min-h-0">
-                                                <iframe
-                                                    title="map"
-                                                    src={`https://www.google.com/maps?q=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}&output=embed`}
-                                                    className="w-full h-full border-0"
-                                                    allowFullScreen
-                                                ></iframe>
+                                {/* Panels area: fills remaining card space and does NOT scroll */}
+                                <div className="flex-1 flex flex-col p-3 min-h-0">
+                                    {/* Loading / Error / Initial states still occupy area without causing scroll */}
+                                    {loading && (
+                                        <div className="text-center py-12">
+                                            <div className="inline-block w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
+                                            <p className="text-cyan-300 text-lg">Scanning atmosphere...</p>
+                                        </div>
+                                    )}
+
+                                    {error && (
+                                        <div className="bg-red-500/20 border border-red-500/50 rounded-2xl p-4 mb-6">
+                                            <p className="text-red-300 text-center">{error}</p>
+                                        </div>
+                                    )}
+
+                                    {!weather && !loading && !error && (
+                                        <div className="text-center py-12">
+                                            <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
+                                                <SearchIcon />
                                             </div>
-                                            <div className="p-3 border-t border-white/5 bg-white/3 text-gray-300 text-sm flex items-center justify-between">
-                                                <div className="truncate">Coordinates: {weather.lat ?? 'N/A'}, {weather.lon ?? 'N/A'}</div>
-                                                <a
-                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}`}
-                                                    target="_blank"
-                                                    rel="noopener"
-                                                    className="text-cyan-300 underline"
-                                                >
-                                                    Open in Maps
-                                                </a>
+                                            <p className="text-gray-400 text-lg">Enter a city to begin scanning</p>
+                                        </div>
+                                    )}
+
+                                    {/* When weather present: two panels side-by-side that fit the card (no scrolling) */}
+                                    {weather && !loading && (
+                                        <div className="flex-1 flex gap-6 min-h-0">
+                                            {/* Map Panel */}
+                                            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/20 flex-1 min-h-0 flex flex-col">
+                                                <div className="flex-1 min-h-0">
+                                                    <iframe
+                                                        title="map"
+                                                        src={`https://www.google.com/maps?q=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}&output=embed`}
+                                                        className="w-full h-full border-0"
+                                                        allowFullScreen
+                                                    ></iframe>
+                                                </div>
+                                                <div className="p-3 border-t border-white/5 bg-white/3 text-gray-300 text-sm flex items-center justify-between">
+                                                    <div className="truncate">Coordinates: {weather.lat ?? 'N/A'}, {weather.lon ?? 'N/A'}</div>
+                                                    <a
+                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}`}
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        className="text-cyan-300 underline"
+                                                    >
+                                                        Open in Maps
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                            {/* Weather Details Panel */}
+                                            <div className="flex-1 flex flex-col gap-6 min-h-0">
+                                                <div className="text-center">
+                                                    <div className="flex items-center justify-center gap-2 mb-2">
+                                                        <MapPinIcon />
+                                                        <h2 className="text-3xl md:text-4xl font-bold text-white truncate">{weather.city}</h2>
+                                                    </div>
+                                                    <p className="text-xl text-gray-300 truncate">{weather.country}</p>
+                                                </div>
+
+                                                <div className="text-center py-2 flex-shrink-0">
+                                                    <div className="relative inline-block">
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
+                                                        <img
+                                                            src={`http://openweathermap.org/img/wn/${weather.icon}@4x.png`}
+                                                            alt="Weather"
+                                                            className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto relative z-10 object-contain"
+                                                        />
+                                                    </div>
+                                                    <p className="text-lg md:text-2xl text-purple-300 capitalize mb-1 truncate">{weather.description}</p>
+                                                    <div className="text-2xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 truncate">
+                                                        {weather.temperature}°C
+                                                    </div>
+                                                    <p className="text-sm md:text-base text-gray-400 mt-1 truncate">Feels like {weather.feels_like}°C</p>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3 flex-shrink-0">
+                                                    <StatCard icon={<ThermometerIcon />} label="Min/Max" value={`${weather.temp_min}°C / ${weather.temp_max}°C`} gradient="from-blue-500 to-cyan-500" />
+                                                    <StatCard icon={<DropletsIcon />} label="Humidity" value={`${weather.humidity}%`} gradient="from-cyan-500 to-teal-500" />
+                                                    <StatCard icon={<WindIcon />} label="Wind Speed" value={`${weather.wind_speed} m/s`} gradient="from-purple-500 to-pink-500" />
+                                                    <StatCard icon={<GaugeIcon />} label="Pressure" value={`${weather.pressure} hPa`} gradient="from-pink-500 to-rose-500" />
+                                                </div>
+
                                             </div>
                                         </div>
-
-                                        {/* Weather Details Panel */}
-                                        <div className="flex-1 flex flex-col gap-4 min-h-0">
-                                            <div className="text-center">
-                                                <div className="flex items-center justify-center gap-2 mb-2">
-                                                    <MapPinIcon />
-                                                    <h2 className="text-3xl md:text-4xl font-bold text-white truncate">{weather.city}</h2>
-                                                </div>
-                                                <p className="text-xl text-gray-300 truncate">{weather.country}</p>
-                                            </div>
-
-                                            <div className="text-center py-2 flex-shrink-0">
-                                                <div className="relative inline-block">
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
-                                                    <img
-                                                        src={`http://openweathermap.org/img/wn/${weather.icon}@4x.png`}
-                                                        alt="Weather"
-                                                        className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto relative z-10 object-contain"
-                                                    />
-                                                </div>
-                                                <p className="text-lg md:text-2xl text-purple-300 capitalize mb-1 truncate">{weather.description}</p>
-                                                <div className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 truncate">
-                                                    {weather.temperature}°C
-                                                </div>
-                                                <p className="text-sm md:text-base text-gray-400 mt-1 truncate">Feels like {weather.feels_like}°C</p>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3 flex-shrink-0">
-                                                <StatCard icon={<ThermometerIcon />} label="Min/Max" value={`${weather.temp_min}°C / ${weather.temp_max}°C`} gradient="from-blue-500 to-cyan-500" />
-                                                <StatCard icon={<DropletsIcon />} label="Humidity" value={`${weather.humidity}%`} gradient="from-cyan-500 to-teal-500" />
-                                                <StatCard icon={<WindIcon />} label="Wind Speed" value={`${weather.wind_speed} m/s`} gradient="from-purple-500 to-pink-500" />
-                                                <StatCard icon={<GaugeIcon />} label="Pressure" value={`${weather.pressure} hPa`} gradient="from-pink-500 to-rose-500" />
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3 pt-2 flex-shrink-0">
-                                                <div className="bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-2xl p-4 text-center">
-                                                    <div className="text-orange-400 mx-auto mb-2 flex justify-center"><SunriseIcon /></div>
-                                                    <p className="text-gray-400 text-sm mb-1">Sunrise</p>
-                                                    <p className="text-2xl font-bold text-orange-300">{weather.sunrise}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-2xl p-4 text-center">
-                                                    <div className="text-indigo-400 mx-auto mb-2 flex justify-center"><SunsetIcon /></div>
-                                                    <p className="text-gray-400 text-sm mb-1">Sunset</p>
-                                                    <p className="text-2xl font-bold text-indigo-300">{weather.sunset}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                             </div>
                          </div>
                      </div>
-                 </div>
+                 </>
             );
         }
 
-        // mount React app
         ReactDOM.createRoot(document.getElementById('root')).render(<WeatherApp />);
     </script>
 </body>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather Predict</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fade-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+    .animate-fade-in { animation: fade-in .45s ease-out; }
+    html,body,#root{height:100%;margin:0;overflow:hidden}
+    .sparkline { width:100%; height:70px; display:block; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  {% raw %}
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function PredictApp(){
+      const [prediction, setPrediction] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [city, setCity] = useState('');
+
+      useEffect(()=>{
+        const params = new URLSearchParams(window.location.search);
+        const cityParam = params.get('city');
+        if(cityParam){
+          setCity(cityParam);
+          fetchPrediction(cityParam);
+        }
+      },[]);
+
+      async function fetchPrediction(cityName){
+        setLoading(true);
+        setError('');
+        setPrediction(null);
+        try{
+          const res = await fetch('/predict-weather', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ city: cityName, days: 7 })
+          });
+          const data = await res.json();
+          if(!res.ok) throw new Error(data.error || 'Failed to fetch');
+          setPrediction(data);
+        }catch(e){
+          setError('Network error. Please try again.');
+        }finally{
+          setLoading(false);
+        }
+      }
+
+      function emojiFor(cond){
+        if(!cond) return '🌤️';
+        const c = cond.toLowerCase();
+        if(c.includes('rain')) return '🌧️';
+        if(c.includes('cloud')) return '☁️';
+        if(c.includes('clear')||c.includes('sun')) return '☀️';
+        if(c.includes('snow')) return '❄️';
+        if(c.includes('thunder')) return '⛈️';
+        if(c.includes('fog')) return '🌫️';
+        return '🌤️';
+      }
+
+      // build sparkline points from forecast temps (safe guards)
+      function buildSparklinePoints(forecast){
+        if(!forecast || !forecast.length) return '';
+        const temps = forecast.map(d => Number(d.avg_temp) || 0);
+        const min = Math.min(...temps);
+        const max = Math.max(...temps);
+        const range = Math.max(1, max - min);
+        const w = 300;
+        const h = 60;
+        return temps.map((t,i)=>{
+          const x = (temps.length === 1) ? w/2 : (i/(temps.length-1)) * w;
+          const y = h - ((t - min)/range) * h;
+          return `${x},${y}`;
+        }).join(' ');
+      }
+
+      // safe helpers for high/low
+      const highest = prediction && prediction.forecast && prediction.forecast.length
+        ? Math.max(...prediction.forecast.map(f=>Number(f.max_temp) || -999))
+        : null;
+      const lowest = prediction && prediction.forecast && prediction.forecast.length
+        ? Math.min(...prediction.forecast.map(f=>Number(f.min_temp) || 999))
+        : null;
+
+      return (
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+          <div className="w-full max-w-5xl h-[calc(100vh-2rem)]">
+            <div className="bg-white/8 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/10 h-full flex flex-col overflow-hidden">
+              {/* header */}
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+                    🔮 Forecast
+                    <span className="text-sm text-gray-300 ml-2">{prediction ? `• ${prediction.city}, ${prediction.country}` : ''}</span>
+                  </h1>
+                  <p className="text-xs text-gray-400 mt-1">Hourly & 5–7 ay Prediction</p>
+                </div>
+
+                <div className="text-right">
+                  {prediction && prediction.forecast && prediction.forecast.length>0 ? (
+                    <>
+                      <div className="text-5xl md:text-6xl font-extrabold text-white -mb-1">
+                        {prediction.forecast[0].avg_temp}°
+                      </div>
+                      <div className="text-sm text-gray-300">
+                        {emojiFor(prediction.forecast[0].condition)} {prediction.forecast[0].condition}
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* sparkline + stats */}
+              <div className="bg-white/6 rounded-2xl p-4 mb-4 flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="text-xs text-gray-300 mb-2">Temperature trend</div>
+
+                  <div className="flex items-center">
+                    <svg viewBox="0 0 300 60" className="sparkline" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.03" />
+                        </linearGradient>
+                      </defs>
+
+                      {prediction && prediction.forecast ? (()=> {
+                        const pts = buildSparklinePoints(prediction.forecast);
+                        if(!pts) return null;
+                        const closed = pts + ` 300,60 0,60`;
+                        return (
+                          <g>
+                            <polyline points={pts} fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                            <polygon points={closed} fill="url(#g1)"/>
+                          </g>
+                        );
+                      })() : null}
+                    </svg>
+                  </div>
+
+                  <div className="flex justify-between text-xs text-gray-400 mt-2">
+                    {prediction && prediction.forecast ? prediction.forecast.map((d,i)=>(
+                      <div key={i} className="truncate text-center" style={{minWidth:0, flex:1}}>{d.date.split(',')[0]}</div>
+                    )) : <div className="text-gray-500">No data</div>}
+                  </div>
+                </div>
+
+                <div className="w-36 text-sm text-gray-300 flex flex-col gap-2">
+                  <div className="bg-white/4 rounded-md p-2 text-center">
+                    <div className="text-xs text-gray-400">High</div>
+                    <div className="text-lg font-semibold text-white">
+                      {highest !== null ? `${highest}°` : '—'}
+                    </div>
+                  </div>
+                  <div className="bg-white/4 rounded-md p-2 text-center">
+                    <div className="text-xs text-gray-400">Low</div>
+                    <div className="text-lg font-semibold text-white">
+                      {lowest !== null ? `${lowest}°` : '—'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* day cards row */}
+              <div className="flex-1 overflow-auto">
+                <div className="flex gap-3 md:gap-4 pb-2">
+                  {prediction && prediction.forecast ? prediction.forecast.map((d,idx)=>(
+                    <div key={idx} className="min-w-[120px] md:min-w-[140px] bg-white/6 border border-white/6 rounded-2xl p-3 flex flex-col items-center justify-between animate-fade-in">
+                      <div className="text-sm text-gray-300">{d.date.split(',')[0]}</div>
+                      <div className="text-3xl mt-2">{emojiFor(d.condition)}</div>
+                      <div className="text-white font-bold text-xl mt-2">{d.avg_temp}°</div>
+                      <div className="w-full flex justify-between text-xs text-gray-300 mt-3">
+                        <div>⬆️ {d.max_temp}°</div>
+                        <div>⬇️ {d.min_temp}°</div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="text-gray-400">No forecast</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-500 mt-3 text-center">Data: OpenWeatherMap • Visualized</div>
+
+              {error && (
+                <div className="absolute left-4 right-4 bottom-4 bg-red-600/10 border border-red-600/20 text-red-300 rounded-md p-3 text-center">
+                  ⚠️ {error}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<PredictApp />);
+  </script>
+  {% endraw %}
+</body>
+</html>
