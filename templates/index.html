@@ -3,96 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather App</title>
+    <title>Dynamic Weather Forecasting System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.05); }
-        }
-        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
-        .delay-1000 { animation-delay: 1s; }
-        .delay-500 { animation-delay: 0.5s; }
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fade-in 0.6s ease-out; }
-
-        /* Prevent any page scrolling and make root full-height */
-        html, body, #root { height: 100%; margin: 0; overflow: hidden; }
+        @keyframes float1 { 0%,100% { transform: translate(0,0) rotate(0deg); } 25% { transform: translate(10px,-20px) rotate(5deg); } 50% { transform: translate(-5px,-40px) rotate(-3deg); } 75% { transform: translate(-15px,-20px) rotate(3deg); } }
+        @keyframes float2 { 0%,100% { transform: translate(0,0) rotate(0deg); } 25% { transform: translate(-15px,-30px) rotate(-5deg); } 50% { transform: translate(10px,-50px) rotate(5deg); } 75% { transform: translate(20px,-25px) rotate(-3deg); } }
+        @keyframes float3 { 0%,100% { transform: translate(0,0); } 33% { transform: translate(20px,-35px); } 66% { transform: translate(-10px,-60px); } }
+        @keyframes float4 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-20px,-45px) scale(1.1); } }
+        @keyframes float5 { 0%,100% { transform: translate(0,0); } 25% { transform: translate(15px,-25px); } 75% { transform: translate(-25px,-35px); } }
+        @keyframes pulse-glow { 0%,100% { opacity: 0.6; filter: blur(40px); } 50% { opacity: 1; filter: blur(60px); } }
+        @keyframes rain { 0% { transform: translateY(-100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
+        @keyframes twinkle { 0%,100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        @keyframes sun-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes glow { 0%,100% { box-shadow: 0 0 40px rgba(255,200,100,0.4), 0 0 80px rgba(100,180,255,0.3); } 50% { box-shadow: 0 0 60px rgba(255,200,100,0.6), 0 0 120px rgba(100,180,255,0.5); } }
+        @keyframes bounce-slow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .animate-float1 { animation: float1 8s ease-in-out infinite; }
+        .animate-float2 { animation: float2 10s ease-in-out infinite; }
+        .animate-float3 { animation: float3 12s ease-in-out infinite; }
+        .animate-float4 { animation: float4 9s ease-in-out infinite; }
+        .animate-float5 { animation: float5 11s ease-in-out infinite; }
+        .animate-sun-rotate { animation: sun-rotate 60s linear infinite; }
+        .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+        .animate-fade-in { animation: fade-in 0.8s ease-out; }
+        .animate-glow { animation: glow 3s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+        .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); }
+        html, body, #root { height: 100%; margin: 0; overflow: auto; }
+        .weather-bg { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #1a1a2e 100%); }
+        .sun-glow { filter: drop-shadow(0 0 30px rgba(255,200,50,0.8)) drop-shadow(0 0 60px rgba(255,150,0,0.5)); }
+        .cloud-shadow { filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3)); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) rgba(0,0,0,0.2); }
+        *::-webkit-scrollbar { width: 8px; }
+        *::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+{% raw %}
     <script type="text/babel">
         const { useState } = React;
 
-        // SVG Icons as Components
-        const SearchIcon = () => (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-        );
-
-        const WindIcon = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
-            </svg>
-        );
-
-        const DropletsIcon = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
-            </svg>
-        );
-
-        const GaugeIcon = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-        );
-
-        const ThermometerIcon = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l3-3 3 3v13M9 19a3 3 0 106 0" />
-            </svg>
-        );
-
-        const MapPinIcon = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        );
-
-        const SunriseIcon = () => (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17h18M12 4v1m8.66 6.34l-.71.71M20 12h1M4 12H3m3.05 7.05l-.71-.71M12 20v1m-8.66-6.34l.71.71" />
-            </svg>
-        );
-
-        const SunsetIcon = () => (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0l-4-4m4 4l4 4" />
-            </svg>
-        );
-
-        function StatCard({ icon, label, value, gradient }) {
-            return (
-                <div className={`bg-gradient-to-br ${gradient} bg-opacity-10 border border-white/10 rounded-2xl p-4 backdrop-blur-sm`}>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="text-white/80">{icon}</div>
-                        <p className="text-gray-300 text-sm">{label}</p>
+        const FloatingIcons = () => (
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-10 right-20 animate-float1">
+                    <div className="relative">
+                        <div className="absolute inset-0 w-32 h-32 bg-yellow-400 rounded-full animate-pulse-glow"></div>
+                        <svg className="w-32 h-32 text-yellow-400 sun-glow animate-sun-rotate" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="20" fill="currentColor"/>
+                            {[...Array(12)].map((_, i) => (<line key={i} x1="50" y1="10" x2="50" y2="20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" transform={`rotate(${i * 30} 50 50)`}/>))}
+                        </svg>
                     </div>
-                    <p className="text-2xl font-bold text-white">{value}</p>
                 </div>
-            );
+                <svg className="absolute top-32 left-10 w-40 h-24 text-white/30 animate-float2 cloud-shadow" viewBox="0 0 100 60"><ellipse cx="30" cy="40" rx="25" ry="15" fill="currentColor"/><ellipse cx="55" cy="35" rx="20" ry="18" fill="currentColor"/><ellipse cx="75" cy="42" rx="18" ry="12" fill="currentColor"/><ellipse cx="45" cy="45" rx="30" ry="12" fill="currentColor"/></svg>
+                <svg className="absolute top-20 left-1/3 w-32 h-20 text-white/20 animate-float3 cloud-shadow" viewBox="0 0 100 60"><ellipse cx="30" cy="40" rx="25" ry="15" fill="currentColor"/><ellipse cx="55" cy="35" rx="20" ry="18" fill="currentColor"/><ellipse cx="75" cy="42" rx="18" ry="12" fill="currentColor"/><ellipse cx="45" cy="45" rx="30" ry="12" fill="currentColor"/></svg>
+                <svg className="absolute bottom-40 right-10 w-48 h-28 text-white/25 animate-float4 cloud-shadow" viewBox="0 0 100 60"><ellipse cx="30" cy="40" rx="25" ry="15" fill="currentColor"/><ellipse cx="55" cy="35" rx="20" ry="18" fill="currentColor"/><ellipse cx="75" cy="42" rx="18" ry="12" fill="currentColor"/><ellipse cx="45" cy="45" rx="30" ry="12" fill="currentColor"/></svg>
+                <svg className="absolute bottom-20 left-20 w-36 h-22 text-white/15 animate-float5 cloud-shadow" viewBox="0 0 100 60"><ellipse cx="30" cy="40" rx="25" ry="15" fill="currentColor"/><ellipse cx="55" cy="35" rx="20" ry="18" fill="currentColor"/><ellipse cx="75" cy="42" rx="18" ry="12" fill="currentColor"/><ellipse cx="45" cy="45" rx="30" ry="12" fill="currentColor"/></svg>
+                <div className="absolute bottom-32 right-1/4 animate-float3"><svg className="w-20 h-20 text-gray-200/40" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 20px rgba(200,200,255,0.5))' }}><path d="M50 10 A40 40 0 1 0 50 90 A30 30 0 1 1 50 10" fill="currentColor"/></svg></div>
+                <div className="absolute top-0 left-1/4 w-1 h-8 bg-gradient-to-b from-transparent via-blue-400/50 to-transparent rounded-full" style={{ animation: 'rain 2s linear infinite' }}></div>
+                <div className="absolute top-0 left-1/3 w-1 h-6 bg-gradient-to-b from-transparent via-blue-400/40 to-transparent rounded-full" style={{ animation: 'rain 2.5s linear infinite', animationDelay: '0.5s' }}></div>
+                <div className="absolute top-0 left-2/3 w-1 h-10 bg-gradient-to-b from-transparent via-blue-400/30 to-transparent rounded-full" style={{ animation: 'rain 1.8s linear infinite', animationDelay: '1s' }}></div>
+                <div className="absolute top-1/4 right-1/3 text-3xl animate-float2" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.8))' }}>❄️</div>
+                <div className="absolute top-1/2 left-1/4 text-2xl animate-float4" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.6))' }}>❄️</div>
+                {[...Array(8)].map((_, i) => (<div key={i} className="absolute w-1 h-1 bg-white rounded-full animate-twinkle" style={{ top: `${10 + i * 12}%`, left: `${5 + i * 13}%`, animationDelay: `${i * 0.3}s` }}></div>))}
+                <svg className="absolute top-40 right-1/3 w-12 h-20 text-yellow-300/50 animate-float1" viewBox="0 0 24 48" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,0,0.8))' }}><path d="M13 2L4 22h7l-2 24 11-28h-8z" fill="currentColor"/></svg>
+            </div>
+        );
+
+        const SearchIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>);
+        const WindIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" /></svg>);
+        const DropletsIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" /></svg>);
+        const GaugeIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>);
+        const ThermometerIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l3-3 3 3v13M9 19a3 3 0 106 0" /></svg>);
+        const MapPinIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>);
+
+        function StatCard({ icon, label, value, color }) {
+            return (<div className="glass rounded-3xl p-6 relative overflow-hidden group hover:scale-105 transition-transform"><div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-20 group-hover:opacity-30 transition-opacity`}></div><div className="relative z-10"><div className="flex items-center gap-4 mb-3"><div className="text-white/80">{icon}</div><p className="text-white/70 text-lg">{label}</p></div><p className="text-3xl font-bold text-white">{value}</p></div></div>);
         }
 
         function WeatherApp() {
@@ -102,189 +93,166 @@
             const [error, setError] = useState('');
 
             const searchWeather = async () => {
-                if (!city.trim()) {
-                    setError('Please enter a city name');
-                    return;
-                }
-
-                setLoading(true);
-                setError('');
-                setWeather(null);
-
+                if (!city.trim()) { setError('Please enter a city name'); return; }
+                setLoading(true); setError(''); setWeather(null);
                 try {
-                    const response = await fetch('/weather', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ city: city.trim() })
-                    });
-
+                    const response = await fetch('/weather', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ city: city.trim() }) });
                     const data = await response.json();
-
-                    if (response.ok) {
-                        setWeather(data);
-                    } else {
-                        setError(data.error || 'Failed to fetch weather data');
-                    }
-                } catch (err) {
-                    setError('Network error. Please try again.');
-                } finally {
-                    setLoading(false);
-                }
+                    if (response.ok) { setWeather(data); } else { setError(data.error || 'Failed to fetch weather data'); }
+                } catch (err) { setError('Network error. Please try again.'); } finally { setLoading(false); }
             };
+            const handleKeyPress = (e) => { if (e.key === 'Enter') searchWeather(); };
 
-            const handleKeyPress = (e) => {
-                if (e.key === 'Enter') searchWeather();
-            };
+            return (<>
+                <div className="min-h-screen weather-bg relative">
+                    <FloatingIcons />
+                    {weather && (<header className="fixed top-6 left-1/2 -translate-x-1/2 z-50"><nav className="glass rounded-full px-8 py-4 shadow-lg"><ul className="flex gap-6 items-center"><li><a href="/" className="text-base text-white/80 hover:text-white transition-colors">🏠 Home</a></li><li className="w-px h-5 bg-white/30"></li><li><a href={`/predict?city=${encodeURIComponent(weather.city)}`} target="_blank" rel="noopener" className="text-base text-white/80 hover:text-white transition-colors">📊 Forecast</a></li></ul></nav></header>)}
 
-            return (
-                <>
-                    {/* Header only shows when a city is searched */}
-                    {weather && (
-                        <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
-                            <nav className="bg-white/6 backdrop-blur rounded-full px-4 py-2 shadow-sm border border-white/10">
-                                <ul className="flex gap-3 items-center">
-                                    <li>
-                                        <a href="/" className="text-sm text-white hover:underline">
-                                            Weather App
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href={`/predict?city=${encodeURIComponent(weather.city)}`} target="_blank" rel="noopener" className="text-sm text-cyan-300 hover:underline">
-                                             Open Predict in new tab
-                                         </a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </header>
+                    {!weather && !loading && (
+                        <div className="relative z-10">
+                            {/* Hero Section */}
+                            <div className="min-h-screen flex flex-col items-center justify-center px-6 py-24">
+                                <div className="w-full max-w-5xl animate-fade-in text-center">
+                                    <div className="relative inline-block mb-10">
+                                        <div className="text-9xl md:text-[12rem] animate-float1" style={{ filter: 'drop-shadow(0 10px 30px rgba(255,200,50,0.4))' }}>🌤️</div>
+                                    </div>
+                                    <h1 className="text-6xl md:text-8xl font-bold text-white mb-6" style={{ textShadow: '0 4px 30px rgba(255,255,255,0.3)' }}>Dynamic Weather Forecasting System </h1>
+                                    <p className="text-2xl md:text-3xl text-white/70 max-w-3xl mx-auto mb-4">Your window to the world's weather</p>
+                                    <p className="text-xl text-white/50 mb-12">Real-time forecasts from around the globe</p>
+                                    <div className="animate-bounce-slow">
+                                        <p className="text-white/40 text-lg mb-3">Scroll down to explore</p>
+                                        <svg className="w-8 h-8 mx-auto text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* How It Works Section */}
+                            <div className="px-6 py-24">
+                                <div className="max-w-6xl mx-auto">
+                                    <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-6">How It Works</h2>
+                                    <p className="text-xl text-white/60 text-center mb-16 max-w-3xl mx-auto">Get accurate weather information in just 3 simple steps</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                                        <div className="text-center">
+                                            <div className="w-28 h-28 mx-auto mb-8 rounded-full glass flex items-center justify-center text-5xl animate-float1">1️⃣</div>
+                                            <h3 className="text-2xl font-semibold text-white mb-4">Enter City Name</h3>
+                                            <p className="text-lg text-white/60">Type the name of any city worldwide in the search box below</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="w-28 h-28 mx-auto mb-8 rounded-full glass flex items-center justify-center text-5xl animate-float2">2️⃣</div>
+                                            <h3 className="text-2xl font-semibold text-white mb-4">Get Instant Results</h3>
+                                            <p className="text-lg text-white/60">We fetch real-time data from weather stations around the world</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="w-28 h-28 mx-auto mb-8 rounded-full glass flex items-center justify-center text-5xl animate-float3">3️⃣</div>
+                                            <h3 className="text-2xl font-semibold text-white mb-4">View Detailed Info</h3>
+                                            <p className="text-lg text-white/60">See temperature, humidity, wind speed, pressure, and more</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Features Section */}
+                            <div className="px-6 py-24">
+                                <div className="max-w-6xl mx-auto">
+                                    <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-6">Features</h2>
+                                    <p className="text-xl text-white/60 text-center mb-16 max-w-3xl mx-auto">Everything you need to stay weather-aware</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                        <div className="glass rounded-3xl p-10 text-center hover:scale-105 transition-transform"><div className="text-6xl mb-6">🌍</div><h3 className="text-2xl font-semibold text-white mb-4">Global Coverage</h3><p className="text-lg text-white/60">Weather data from every corner of the planet</p></div>
+                                        <div className="glass rounded-3xl p-10 text-center hover:scale-105 transition-transform"><div className="text-6xl mb-6">⚡</div><h3 className="text-2xl font-semibold text-white mb-4">Real-Time Updates</h3><p className="text-lg text-white/60">Live data from weather stations worldwide</p></div>
+                                        <div className="glass rounded-3xl p-10 text-center hover:scale-105 transition-transform"><div className="text-6xl mb-6">🎯</div><h3 className="text-2xl font-semibold text-white mb-4">Accurate Data</h3><p className="text-lg text-white/60">Precise forecasts you can rely on</p></div>
+                                        <div className="glass rounded-3xl p-10 text-center hover:scale-105 transition-transform"><div className="text-6xl mb-6">🗺️</div><h3 className="text-2xl font-semibold text-white mb-4">Interactive Map</h3><p className="text-lg text-white/60">See the exact location on Google Maps</p></div>
+                                        <div className="glass rounded-3xl p-10 text-center hover:scale-105 transition-transform"><div className="text-6xl mb-6">📊</div><h3 className="text-2xl font-semibold text-white mb-4">5-Day Forecast</h3><p className="text-lg text-white/60">Plan ahead with extended predictions</p></div>
+                                        <div className="glass rounded-3xl p-10 text-center hover:scale-105 transition-transform"><div className="text-6xl mb-6">💨</div><h3 className="text-2xl font-semibold text-white mb-4">Detailed Metrics</h3><p className="text-lg text-white/60">Wind, humidity, pressure & more</p></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Weather Info Section */}
+                            <div className="px-6 py-24">
+                                <div className="max-w-6xl mx-auto">
+                                    <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-6">What You'll See</h2>
+                                    <p className="text-xl text-white/60 text-center mb-16">Comprehensive weather data at your fingertips</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                        <div className="glass rounded-3xl p-8 text-center"><div className="text-5xl mb-4">🌡️</div><p className="text-xl text-white font-semibold mb-2">Temperature</p><p className="text-white/50">Current & feels like</p></div>
+                                        <div className="glass rounded-3xl p-8 text-center"><div className="text-5xl mb-4">💧</div><p className="text-xl text-white font-semibold mb-2">Humidity</p><p className="text-white/50">Moisture level</p></div>
+                                        <div className="glass rounded-3xl p-8 text-center"><div className="text-5xl mb-4">💨</div><p className="text-xl text-white font-semibold mb-2">Wind Speed</p><p className="text-white/50">In meters/second</p></div>
+                                        <div className="glass rounded-3xl p-8 text-center"><div className="text-5xl mb-4">🔽</div><p className="text-xl text-white font-semibold mb-2">Pressure</p><p className="text-white/50">Atmospheric hPa</p></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Search Section */}
+                            <div className="px-6 py-24" id="search">
+                                <div className="max-w-5xl mx-auto">
+                                    <div className="glass rounded-3xl p-12 shadow-2xl animate-glow">
+                                        <h2 className="text-3xl font-bold text-center text-white mb-4">🔍 Search Weather</h2>
+                                        <p className="text-xl text-center text-white/60 mb-8">Enter any city name to get started</p>
+                                        <div className="relative">
+                                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} onKeyPress={handleKeyPress} placeholder="e.g., Tokyo, London, New York..." className="w-full bg-white/10 border-2 border-white/20 rounded-2xl px-8 py-5 pr-16 text-white text-xl placeholder-white/40 focus:outline-none focus:border-white/40 focus:bg-white/15 transition-all" />
+                                            <button onClick={searchWeather} disabled={loading} className="absolute right-3 top-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white p-4 rounded-xl transition-all disabled:opacity-50 shadow-lg"><SearchIcon /></button>
+                                        </div>
+                                        <p className="text-center text-white/40 text-lg mt-6">Press Enter or click the search button</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <footer className="px-6 py-12 border-t border-white/10">
+                                <div className="max-w-5xl mx-auto text-center">
+                                    <p className="text-white/40 text-lg">Powered by OpenWeatherMap API • Built with React & Tailwind CSS</p>
+                                </div>
+                            </footer>
+                        </div>
                     )}
 
-                    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-                        {/* Glass Card Wrapper - fixed size when a city is searched so it never overlaps viewport */}
-                        <div className={`relative z-10 mx-auto inline-block ${weather ? 'w-[calc(100vw-4rem)] h-[calc(100vh-4rem)]' : 'w-full max-w-4xl'}`}>
-                            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 overflow-hidden h-full flex flex-col">
-                                {/* Header + search area (fixed height) */}
-                                <div className="flex-shrink-0 p-3">
-                                    {/* ...existing header + search markup... */}
-                                    <div className="text-center mb-8">
-                                        <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-2">Weather App</h1>
-                                        <p className="text-gray-300 text-sm">Real-time atmospheric intelligence</p>
+                    {weather && !loading && (
+                        <div className="min-h-screen flex items-center justify-center p-6 relative z-10">
+                            <div className="w-full max-w-7xl">
+                                <div className="glass rounded-3xl p-10 shadow-2xl animate-fade-in">
+                                    <div className="mb-8">
+                                        <div className="relative max-w-lg mx-auto">
+                                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} onKeyPress={handleKeyPress} placeholder="Search another city..." className="w-full bg-white/10 border-2 border-white/20 rounded-2xl px-8 py-4 pr-16 text-xl text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-all" />
+                                            <button onClick={searchWeather} disabled={loading} className="absolute right-3 top-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white p-3.5 rounded-xl transition-all disabled:opacity-50"><SearchIcon /></button>
+                                        </div>
                                     </div>
-
-                                    <div className="relative mb-6">
-                                        <input
-                                            type="text"
-                                            value={city}
-                                            onChange={(e) => setCity(e.target.value)}
-                                            onKeyPress={handleKeyPress}
-                                            placeholder="Enter city coordinates..."
-                                            className="w-full bg-white/5 border border-cyan-500/30 rounded-2xl px-6 py-3 pr-14 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                                        />
-                                        <button
-                                            onClick={searchWeather}
-                                            disabled={loading}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <SearchIcon />
-                                        </button>
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                        <div className="rounded-3xl overflow-hidden border-2 border-white/20 h-96 lg:h-[500px]">
+                                            <iframe title="map" src={`https://www.google.com/maps?q=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}&output=embed`} className="w-full h-full border-0"></iframe>
+                                        </div>
+                                        <div className="flex flex-col justify-center">
+                                            <div className="text-center mb-8">
+                                                <div className="flex items-center justify-center gap-3 mb-2"><MapPinIcon /><h2 className="text-4xl font-bold text-white">{weather.city}</h2></div>
+                                                <p className="text-xl text-white/60">{weather.country}</p>
+                                            </div>
+                                            <div className="flex items-center justify-center gap-6 mb-10">
+                                                <img src={`http://openweathermap.org/img/wn/${weather.icon}@4x.png`} alt="Weather" className="w-36 h-36" style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' }} />
+                                                <div>
+                                                    <div className="text-7xl font-bold text-white">{weather.temperature}°C</div>
+                                                    <p className="text-xl text-white/60 capitalize">{weather.description}</p>
+                                                    <p className="text-lg text-white/50">Feels like {weather.feels_like}°C</p>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-5">
+                                                <StatCard icon={<ThermometerIcon />} label="Min/Max" value={`${weather.temp_min}° / ${weather.temp_max}°`} color="from-orange-500 to-red-500" />
+                                                <StatCard icon={<DropletsIcon />} label="Humidity" value={`${weather.humidity}%`} color="from-blue-500 to-cyan-500" />
+                                                <StatCard icon={<WindIcon />} label="Wind" value={`${weather.wind_speed} m/s`} color="from-teal-500 to-green-500" />
+                                                <StatCard icon={<GaugeIcon />} label="Pressure" value={`${weather.pressure} hPa`} color="from-purple-500 to-pink-500" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
 
-                                {/* Panels area: fills remaining card space and does NOT scroll */}
-                                <div className="flex-1 flex flex-col p-3 min-h-0">
-                                    {/* Loading / Error / Initial states still occupy area without causing scroll */}
-                                    {loading && (
-                                        <div className="text-center py-12">
-                                            <div className="inline-block w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
-                                            <p className="text-cyan-300 text-lg">Scanning atmosphere...</p>
-                                        </div>
-                                    )}
+                    {loading && (<div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50"><div className="glass rounded-3xl p-16 text-center"><div className="text-7xl mb-8 animate-float1">🌤️</div><p className="text-white text-2xl mb-3">Fetching weather data...</p><p className="text-xl text-white/60">Please wait</p></div></div>)}
 
-                                    {error && (
-                                        <div className="bg-red-500/20 border border-red-500/50 rounded-2xl p-4 mb-6">
-                                            <p className="text-red-300 text-center">{error}</p>
-                                        </div>
-                                    )}
-
-                                    {!weather && !loading && !error && (
-                                        <div className="text-center py-12">
-                                            <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full flex items-center justify-center">
-                                                <SearchIcon />
-                                            </div>
-                                            <p className="text-gray-400 text-lg">Enter a city to begin scanning</p>
-                                        </div>
-                                    )}
-
-                                    {/* When weather present: two panels side-by-side that fit the card (no scrolling) */}
-                                    {weather && !loading && (
-                                        <div className="flex-1 flex gap-6 min-h-0">
-                                            {/* Map Panel */}
-                                            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/20 flex-1 min-h-0 flex flex-col">
-                                                <div className="flex-1 min-h-0">
-                                                    <iframe
-                                                        title="map"
-                                                        src={`https://www.google.com/maps?q=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}&output=embed`}
-                                                        className="w-full h-full border-0"
-                                                        allowFullScreen
-                                                    ></iframe>
-                                                </div>
-                                                <div className="p-3 border-t border-white/5 bg-white/3 text-gray-300 text-sm flex items-center justify-between">
-                                                    <div className="truncate">Coordinates: {weather.lat ?? 'N/A'}, {weather.lon ?? 'N/A'}</div>
-                                                    <a
-                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(weather.city + (weather.country ? ', ' + weather.country : ''))}`}
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        className="text-cyan-300 underline"
-                                                    >
-                                                        Open in Maps
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                            {/* Weather Details Panel */}
-                                            <div className="flex-1 flex flex-col gap-6 min-h-0">
-                                                <div className="text-center">
-                                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                                        <MapPinIcon />
-                                                        <h2 className="text-3xl md:text-4xl font-bold text-white truncate">{weather.city}</h2>
-                                                    </div>
-                                                    <p className="text-xl text-gray-300 truncate">{weather.country}</p>
-                                                </div>
-
-                                                <div className="text-center py-2 flex-shrink-0">
-                                                    <div className="relative inline-block">
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
-                                                        <img
-                                                            src={`http://openweathermap.org/img/wn/${weather.icon}@4x.png`}
-                                                            alt="Weather"
-                                                            className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto relative z-10 object-contain"
-                                                        />
-                                                    </div>
-                                                    <p className="text-lg md:text-2xl text-purple-300 capitalize mb-1 truncate">{weather.description}</p>
-                                                    <div className="text-2xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 truncate">
-                                                        {weather.temperature}°C
-                                                    </div>
-                                                    <p className="text-sm md:text-base text-gray-400 mt-1 truncate">Feels like {weather.feels_like}°C</p>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-3 flex-shrink-0">
-                                                    <StatCard icon={<ThermometerIcon />} label="Min/Max" value={`${weather.temp_min}°C / ${weather.temp_max}°C`} gradient="from-blue-500 to-cyan-500" />
-                                                    <StatCard icon={<DropletsIcon />} label="Humidity" value={`${weather.humidity}%`} gradient="from-cyan-500 to-teal-500" />
-                                                    <StatCard icon={<WindIcon />} label="Wind Speed" value={`${weather.wind_speed} m/s`} gradient="from-purple-500 to-pink-500" />
-                                                    <StatCard icon={<GaugeIcon />} label="Pressure" value={`${weather.pressure} hPa`} gradient="from-pink-500 to-rose-500" />
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                             </div>
-                         </div>
-                     </div>
-                 </>
-            );
+                    {error && !weather && !loading && (<div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full mx-6"><div className="bg-red-500/20 border-2 border-red-500/50 rounded-2xl p-6 backdrop-blur-xl"><p className="text-red-200 text-center text-xl">⚠️ {error}</p></div></div>)}
+                </div>
+            </>);
         }
-
         ReactDOM.createRoot(document.getElementById('root')).render(<WeatherApp />);
     </script>
+{% endraw %}
 </body>
 </html>
