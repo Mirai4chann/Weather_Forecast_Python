@@ -49,7 +49,7 @@
 {% raw %}
     <script type="text/babel">
         const { useState } = React;
-
+        
         const FloatingIcons = () => (
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-10 right-20 animate-float1">
@@ -75,27 +75,24 @@
                 <svg className="absolute top-40 right-1/3 w-12 h-20 text-yellow-300/50 animate-float1" viewBox="0 0 24 48" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,0,0.8))' }}><path d="M13 2L4 22h7l-2 24 11-28h-8z" fill="currentColor"/></svg>
             </div>
         );
-
+        
         const SearchIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>);
         const WindIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" /></svg>);
         const DropletsIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" /></svg>);
         const GaugeIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>);
         const ThermometerIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l3-3 3 3v13M9 19a3 3 0 106 0" /></svg>);
         const MapPinIcon = () => (<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>);
-
+        
         function StatCard({ icon, label, value, color }) {
             return (<div className="glass rounded-3xl p-6 relative overflow-hidden group hover:scale-105 transition-transform"><div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-20 group-hover:opacity-30 transition-opacity`}></div><div className="relative z-10"><div className="flex items-center gap-4 mb-3"><div className="text-white/80">{icon}</div><p className="text-white/70 text-lg">{label}</p></div><p className="text-3xl font-bold text-white">{value}</p></div></div>);
         }
-
+        
         function WeatherApp() {
             const [city, setCity] = useState('');
             const [weather, setWeather] = useState(null);
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState('');
-
-            // Only PDF export is supported (build HTML and generate PDF)
-
-            // Build HTML for PDF (simple styled layout)
+            
             function buildReportHTML(w) {
                 if (!w) return '';
                 const generated = new Date().toLocaleString();
@@ -121,18 +118,16 @@
                 </div>
                 `;
             }
-
-            // Generate and download PDF using html2pdf
+            
             function downloadReportPDF(w) {
                 if (!w) { setError('No weather data to download'); return; }
                 const filename = `${(w.city || 'weather_report').replace(/[^a-z0-9-_]/gi, '_')}.pdf`;
                 const wrapper = document.createElement('div');
                 wrapper.style.background = '#fff';
                 wrapper.style.padding = '8px';
-                wrapper.style.width = '210mm'; // A4 width hint
+                wrapper.style.width = '210mm';
                 wrapper.innerHTML = buildReportHTML(w);
                 document.body.appendChild(wrapper);
-
                 const opt = {
                     margin:       10,
                     filename:     filename,
@@ -140,17 +135,13 @@
                     html2canvas:  { scale: 2, useCORS: true },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
-
-                // html2pdf will trigger download; cleanup after a short delay
                 try {
                     html2pdf().set(opt).from(wrapper).save();
                 } finally {
                     setTimeout(() => wrapper.remove(), 1200);
                 }
             }
-
-            // helper: direct PDF download (use downloadReportPDF above where needed)
-
+            
             const searchWeather = async () => {
                 if (!city.trim()) { setError('Please enter a city name'); return; }
                 setLoading(true); setError(''); setWeather(null);
@@ -160,22 +151,23 @@
                     if (response.ok) { setWeather(data); } else { setError(data.error || 'Failed to fetch weather data'); }
                 } catch (err) { setError('Network error. Please try again.'); } finally { setLoading(false); }
             };
+            
             const handleKeyPress = (e) => { if (e.key === 'Enter') searchWeather(); };
+            
+            // PART 1 ENDS HERE - CONTINUE WITH PART 2
 
             return (<>
                 <div className="min-h-screen weather-bg relative">
                     <FloatingIcons />
                     {weather && (<header className="fixed top-6 left-1/2 -translate-x-1/2 z-50"><nav className="glass rounded-full px-8 py-4 shadow-lg"><ul className="flex gap-6 items-center"><li><a href="/" className="text-base text-white/80 hover:text-white transition-colors">🏠 Home</a></li><li className="w-px h-5 bg-white/30"></li><li><a href={`/predict?city=${encodeURIComponent(weather.city)}`} target="_blank" rel="noopener" className="text-base text-white/80 hover:text-white transition-colors">📊 Forecast</a></li></ul></nav></header>)}
-
                     {!weather && !loading && (
                         <div className="relative z-10">
-                            {/* Hero Section */}
                             <div className="min-h-screen flex flex-col items-center justify-center px-6 py-24">
                                 <div className="w-full max-w-5xl animate-fade-in text-center">
                                     <div className="relative inline-block mb-10">
                                         <div className="text-9xl md:text-[12rem] animate-float1" style={{ filter: 'drop-shadow(0 10px 30px rgba(255,200,50,0.4))' }}>🌤️</div>
                                     </div>
-                                    <h1 className="text-6xl md:text-8xl font-bold text-white mb-6" style={{ textShadow: '0 4px 30px rgba(255,255,255,0.3)' }}>Dynamic Weather Forecasting System </h1>
+                                    <h1 className="text-6xl md:text-8xl font-bold text-white mb-6" style={{ textShadow: '0 4px 30px rgba(255,255,255,0.3)' }}>Dynamic Weather Forecasting System</h1>
                                     <p className="text-2xl md:text-3xl text-white/70 max-w-3xl mx-auto mb-4">Your window to the world's weather</p>
                                     <p className="text-xl text-white/50 mb-12">Real-time forecasts from around the globe</p>
                                     <div className="animate-bounce-slow">
@@ -184,8 +176,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            {/* How It Works Section */}
                             <div className="px-6 py-24">
                                 <div className="max-w-6xl mx-auto">
                                     <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-6">How It Works</h2>
@@ -209,8 +199,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Features Section */}
                             <div className="px-6 py-24">
                                 <div className="max-w-6xl mx-auto">
                                     <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-6">Features</h2>
@@ -225,8 +213,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Weather Info Section */}
                             <div className="px-6 py-24">
                                 <div className="max-w-6xl mx-auto">
                                     <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-6">What You'll See</h2>
@@ -239,8 +225,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Search Section */}
                             <div className="px-6 py-24" id="search">
                                 <div className="max-w-5xl mx-auto">
                                     <div className="glass rounded-3xl p-12 shadow-2xl animate-glow">
@@ -254,8 +238,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Footer */}
                             <footer className="px-6 py-12 border-t border-white/10">
                                 <div className="max-w-5xl mx-auto text-center">
                                     <p className="text-white/40 text-lg">Powered by OpenWeatherMap API • Built with React & Tailwind CSS</p>
@@ -263,7 +245,6 @@
                             </footer>
                         </div>
                     )}
-
                     {weather && !loading && (
                         <div className="min-h-screen flex items-center justify-center p-6 relative z-10">
                             <div className="w-full max-w-7xl">
@@ -273,12 +254,14 @@
                                             <input type="text" value={city} onChange={(e) => setCity(e.target.value)} onKeyPress={handleKeyPress} placeholder="Search another city..." className="w-full bg-white/10 border-2 border-white/20 rounded-2xl px-8 py-4 pr-16 text-xl text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-all" />
                                             <button onClick={searchWeather} disabled={loading} className="absolute right-3 top-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white p-3.5 rounded-xl transition-all disabled:opacity-50"><SearchIcon /></button>
                                         </div>
-                                        {/* Download controls */}
-                                        {weather && (
-                                            <div className="flex items-center justify-center gap-3 mt-4">
-                                                <button onClick={() => downloadReportPDF(weather)} className="bg-green-500 hover:bg-green-400 text-white px-4 py-2 rounded-md shadow-md">Download PDF</button>
-                                            </div>
-                                        )}
+                                        <div className="flex justify-center mt-6">
+                                            <button onClick={() => downloadReportPDF(weather)} className="glass px-6 py-3 rounded-xl text-white font-medium flex items-center gap-2 hover:bg-white/20 transition-all shadow-lg hover:shadow-xl hover:scale-105">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                Download PDF Report
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                         <div className="rounded-3xl overflow-hidden border-2 border-white/20 h-96 lg:h-[500px]">
@@ -309,13 +292,12 @@
                             </div>
                         </div>
                     )}
-
                     {loading && (<div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50"><div className="glass rounded-3xl p-16 text-center"><div className="text-7xl mb-8 animate-float1">🌤️</div><p className="text-white text-2xl mb-3">Fetching weather data...</p><p className="text-xl text-white/60">Please wait</p></div></div>)}
-
                     {error && !weather && !loading && (<div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full mx-6"><div className="bg-red-500/20 border-2 border-red-500/50 rounded-2xl p-6 backdrop-blur-xl"><p className="text-red-200 text-center text-xl">⚠️ {error}</p></div></div>)}
                 </div>
             </>);
         }
+        
         ReactDOM.createRoot(document.getElementById('root')).render(<WeatherApp />);
     </script>
 {% endraw %}
